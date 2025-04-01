@@ -27,3 +27,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error }, { status: 400 });
   }
 }
+
+export async function PATCH(req: Request) {
+  await dbConnect();
+
+  try {
+    const body = await req.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Category ID is missing' },
+        { status: 400 }
+      );
+    }
+
+    const updatedCategory = await Category.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedCategory) {
+      return NextResponse.json(
+        { error: 'Category not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(updatedCategory);
+  } catch (error) {
+    console.error(error);
+  }
+}

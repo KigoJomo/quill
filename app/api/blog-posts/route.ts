@@ -1,14 +1,13 @@
 import dbConnect from '@/lib/dbConnect';
-import Product from '@/models/Product';
+import BlogPost from '@/models/BlogPost';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   await dbConnect();
 
   try {
-    const products = await Product.find({});
-
-    return NextResponse.json(products);
+    const blogPosts = await BlogPost.find({}).sort({ createdAt: -1 });
+    return NextResponse.json(blogPosts);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error });
@@ -20,9 +19,10 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const product = await Product.create(body);
-    return NextResponse.json(product, { status: 201 });
+    const blogPost = await BlogPost.create(body);
+    return NextResponse.json(blogPost, { status: 201 });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: error }, { status: 400 });
   }
 }
@@ -36,21 +36,24 @@ export async function PATCH(req: Request) {
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Product ID is required.' },
+        { error: 'Blog post ID is required.' },
         { status: 400 }
       );
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
+    const updatedBlogPost = await BlogPost.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });
 
-    if (!updatedProduct) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    if (!updatedBlogPost) {
+      return NextResponse.json(
+        { error: 'Blog post not found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(updatedProduct)
+    return NextResponse.json(updatedBlogPost);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error }, { status: 400 });
